@@ -42,6 +42,24 @@ app.get("/status", async (req, res) => {
   }
 });
 
+app.get("/members", async (req, res) => {
+  try {
+    const guild = await client.guilds.fetch(process.env.GUILD_ID);
+    await guild.members.fetch(); // Ensures all members are loaded into cache
+
+    const members = guild.members.cache.map((member) => ({
+      id: member.id,
+      username: member.user.username,
+      tag: member.user.tag,
+    }));
+
+    res.json(members);
+  } catch (error) {
+    console.error("Error fetching members:", error);
+    res.status(500).json({ error: "Failed to fetch members" });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
