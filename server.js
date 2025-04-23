@@ -42,12 +42,16 @@ app.get("/status", async (req, res) => {
     const members = guild.members.cache.map((member) => ({
       id: member.id,
       username: member.user.username,
-      tag: member.user.tag,
+      tag:
+        member.user.discriminator !== "0"
+          ? `${member.user.username}#${member.user.discriminator}`
+          : member.user.username,
+      status: member.presence?.status || "offline",
     }));
 
     res.json(members);
   } catch (error) {
-    console.error("❌ Error in /combined-info:", error);
+    console.error("❌ Error in /status:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
