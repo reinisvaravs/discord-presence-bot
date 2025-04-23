@@ -25,27 +25,19 @@ client.login(process.env.BOT_TOKEN);
 
 app.get("/status", async (req, res) => {
   try {
+    const guild = await client.guilds.fetch(GUILD_ID);
+    await guild.members.fetch(); // Ensure all members are loaded
     const userId = req.query.user_id;
-    if (!userId) return res.status(400).json({ error: "Missing user_id" });
 
-    const guild = client.guilds.cache.get(GUILD_ID);
-    const member = await guild.members.fetch(userId);
-
-    res.json({
-      id: member.id,
-      username: member.user.username,
-      status: member.presence?.status || "offline",
-    });
-  } catch (error) {
-    console.error("❌ Error fetching presence:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-app.get("/members", async (req, res) => {
-  try {
-    const guild = await client.guilds.fetch(process.env.GUILD_ID);
-    await guild.members.fetch(); // Ensures all members are loaded into cache
+    if (userId) {
+      const member =
+        guild.members.cache.get(userId) || (await guild.members.fetch(userId));
+      return res.json({
+        id: member.id,
+        username: member.user.username,
+        status: member.presence?.status || "offline",
+      });
+    }
 
     const members = guild.members.cache.map((member) => ({
       id: member.id,
@@ -55,8 +47,8 @@ app.get("/members", async (req, res) => {
 
     res.json(members);
   } catch (error) {
-    console.error("Error fetching members:", error);
-    res.status(500).json({ error: "Failed to fetch members" });
+    console.error("❌ Error in /combined-info:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
