@@ -23,7 +23,7 @@ client.once("ready", () => {
 
 client.login(process.env.BOT_TOKEN);
 
-app.get("/status", async (req, res) => {
+app.get("/combined-info", async (req, res) => {
   try {
     const guild = await client.guilds.fetch(GUILD_ID);
     await guild.members.fetch(); // Ensure all members are loaded
@@ -35,6 +35,10 @@ app.get("/status", async (req, res) => {
       return res.json({
         id: member.id,
         username: member.user.username,
+        displayName: member.displayName,
+        avatar: member.user.displayAvatarURL({ dynamic: true, size: 512 }),
+        roles: member.roles.cache.map((role) => role.name),
+        isBot: member.user.bot,
         status: member.presence?.status || "offline",
       });
     }
@@ -42,6 +46,10 @@ app.get("/status", async (req, res) => {
     const members = guild.members.cache.map((member) => ({
       id: member.id,
       username: member.user.username,
+      displayName: member.displayName,
+      avatar: member.user.displayAvatarURL({ dynamic: true, size: 512 }),
+      roles: member.roles.cache.map((role) => role.name),
+      isBot: member.user.bot,
       tag:
         member.user.discriminator !== "0"
           ? `${member.user.username}#${member.user.discriminator}`
@@ -51,7 +59,7 @@ app.get("/status", async (req, res) => {
 
     res.json(members);
   } catch (error) {
-    console.error("❌ Error in /status:", error);
+    console.error("❌ Error in /combined-info:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
